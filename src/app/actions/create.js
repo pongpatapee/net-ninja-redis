@@ -11,6 +11,13 @@ export async function createBook(formData) {
 
   console.log(`Sending book ${id} to redis`)
 
+  // add book to sorted set
+  const unique = await client.zAdd('books', {value: title, score: id}, {NX: true})
+
+  if (!unique) {
+    return {error: "Book have already been added"}
+  }
+
   // save book as redis hash
   await client.hSet(`books:${id}`, {
     title,
@@ -22,5 +29,5 @@ export async function createBook(formData) {
   console.log("Done sending to redis")
 
   // redirect doesn't work right now
-  // redirect("/");
+  redirect("/");
 }
